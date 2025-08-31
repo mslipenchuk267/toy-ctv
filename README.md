@@ -27,8 +27,8 @@ open http://localhost:8080
 
 # 3) Produce some toy CTV events to Kafka using uv (from test/)
 cd test
-uv run python ../producer/test_runner.py --broker localhost:9092 --sessions 25
-cd -
+uv run python /test_runner.py
+cd ..
 
 # 4) Open Grafana and explore
 open http://localhost:3000
