@@ -3,7 +3,7 @@ services:
       image: grafana/grafana:latest
       container_name: grafana
       ports:
-        - "3000:3000"                 # http://localhost:3000
+        - "3000:3000"
       environment:
         GF_SECURITY_ADMIN_USER: admin
         GF_SECURITY_ADMIN_PASSWORD: admin
@@ -13,12 +13,12 @@ services:
         - ./grafana/provisioning:/etc/grafana/provisioning
         - grafana_data:/var/lib/grafana
       depends_on:
-        - clickhouse   # <-- make sure your ClickHouse service is named 'clickhouse'
+        - clickhouse
 
   postgres:
     image: postgres:16-alpine
     container_name: postgres
-    ports: ["5432:5432"]        # host: 5432
+    ports: ["5432:5432"] 
     environment:
       POSTGRES_DB: ad_oltp
       POSTGRES_USER: app
