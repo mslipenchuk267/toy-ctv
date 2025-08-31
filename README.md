@@ -25,7 +25,7 @@ docker compose up -d
 # 3) Open Kafbat Kafka UI
 open http://localhost:8080
 
-# 3) Produce some toy CTV events to Kafka using uv (from test/)
+# 3) Produce some test CTV events to Kafka
 cd test
 uv run python /test_runner.py
 cd ..
