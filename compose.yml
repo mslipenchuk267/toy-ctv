@@ -1,0 +1,65 @@
+services:
+  grafana:
+      image: grafana/grafana:latest
+      container_name: grafana
+      ports:
+        - "3000:3000"                 # http://localhost:3000
+      environment:
+        GF_SECURITY_ADMIN_USER: admin
+        GF_SECURITY_ADMIN_PASSWORD: admin
+        # Install the official ClickHouse plugin
+        GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+      volumes:
+        - ./grafana/provisioning:/etc/grafana/provisioning
+        - grafana_data:/var/lib/grafana
+      depends_on:
+        - clickhouse   # <-- make sure your ClickHouse service is named 'clickhouse'
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports: ["8123:8123", "9000:9000"]
+    environment:
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=mysecret
+      - CLICKHOUSE_DB=ctv
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ulimits: { nofile: { soft: 262144, hard: 262144 } }
+    volumes:
+      - ./ch_data:/var/lib/clickhouse
+      - ./ch_logs:/var/log/clickhouse-server
+
+  kafka-ui:
+    image: kafbat/kafka-ui:main
+    ports:
+      - 8080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+    depends_on:
+      - kafka
+
+  kafka:
+    image: apache/kafka-native
+    ports:
+      - "9092:9092"
+    environment:
+      # Configure listeners for both docker and host communication
+      KAFKA_LISTENERS: CONTROLLER://localhost:9091,HOST://0.0.0.0:9092,DOCKER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
+
+      # Settings required for KRaft mode
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9091
+
+      # Listener to use for broker-to-broker communication
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+
+      # Required for a single node cluster
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  grafana_data:
