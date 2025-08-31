@@ -33,3 +33,14 @@ cd ..
 # 4) Open Grafana and explore
 open http://localhost:3000
 # login: admin / admin  (datasource "ClickHouse" is pre-provisioned)
+```
+
+---
+
+## Cleanup
+
+```bash
+docker compose down
+# optional volumes clean:
+docker volume rm $(docker volume ls -q | grep 'grafana_data') 2>/dev/null || true
+```
