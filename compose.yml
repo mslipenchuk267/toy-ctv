@@ -15,6 +15,18 @@ services:
       depends_on:
         - clickhouse   # <-- make sure your ClickHouse service is named 'clickhouse'
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    ports: ["5432:5432"]        # host: 5432
+    environment:
+      POSTGRES_DB: ad_oltp
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d   # optional: init SQL
+
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     ports: ["8123:8123", "9000:9000"]
@@ -63,3 +75,4 @@ services:
 
 volumes:
   grafana_data:
+  pg_data:
