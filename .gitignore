@@ -71,4 +71,4 @@ out/
 !gradlew.bat
 
 # --- Local uv test workspace ---
-test/
+test/.venv

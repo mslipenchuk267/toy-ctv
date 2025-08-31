@@ -16,4 +16,4 @@ for f in "$ROOT/clickhouse/init/"*.sql; do
     curl -fsS "$CH_URL" -u "$CH_USER" --data-binary @"$f" >/dev/null
   fi
 done
-echo "Done."
+echo "Clickhouse Done."
