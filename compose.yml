@@ -39,6 +39,13 @@ services:
     volumes:
       - ch_data:/var/lib/clickhouse
       - ch_logs:/var/log/clickhouse-server
+    healthcheck:
+      # Considered "healthy" only when auth works and a trivial query succeeds
+      test: ["CMD-SHELL", "clickhouse-client -u \"$${CLICKHOUSE_USER}\" --password \"$${CLICKHOUSE_PASSWORD}\" --query 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    
 
   kafka-ui:
     image: kafbat/kafka-ui:main
