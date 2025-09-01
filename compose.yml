@@ -45,7 +45,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
-    
+      start_period: 20s
+
+  clickhouse-init:
+    image: clickhouse/clickhouse-server:latest
+    depends_on:
+      clickhouse: { condition: service_healthy }
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=mysecret
+      - CLICKHOUSE_DB=ctv
+      - SQL_DIR=/clickhouse/init
+    volumes:
+      - ./scripts/ch-init.sh:/init/ch-init.sh
+      - ./clickhouse/init:/clickhouse/init:ro
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/ch-init.sh && /init/ch-init.sh"]
+    restart: no
 
   kafka-ui:
     image: kafbat/kafka-ui:main
