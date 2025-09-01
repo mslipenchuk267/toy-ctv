@@ -3,7 +3,7 @@ services:
       image: grafana/grafana:latest
       container_name: grafana
       ports:
-        - "3000:3000"                 # http://localhost:3000
+        - "3000:3000"
       environment:
         GF_SECURITY_ADMIN_USER: admin
         GF_SECURITY_ADMIN_PASSWORD: admin
@@ -13,7 +13,26 @@ services:
         - ./grafana/provisioning:/etc/grafana/provisioning
         - grafana_data:/var/lib/grafana
       depends_on:
-        - clickhouse   # <-- make sure your ClickHouse service is named 'clickhouse'
+        - clickhouse
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    ports: ["5432:5432"] 
+    environment:
+      POSTGRES_DB: ad_oltp
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      #- ./postgres/init:/docker-entrypoint-initdb.d   # optional: init SQL
+    healthcheck:
+      # Use pg_isready inside the container. Note $$ to avoid Compose interpolation.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -25,41 +44,117 @@ services:
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     ulimits: { nofile: { soft: 262144, hard: 262144 } }
     volumes:
-      - ./ch_data:/var/lib/clickhouse
-      - ./ch_logs:/var/log/clickhouse-server
+      - ch_data:/var/lib/clickhouse
+      - ch_logs:/var/log/clickhouse-server
+    healthcheck:
+      # Considered "healthy" only when auth works and a trivial query succeeds
+      test: ["CMD-SHELL", "clickhouse-client -u \"$${CLICKHOUSE_USER}\" --password \"$${CLICKHOUSE_PASSWORD}\" --query 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
+  postgres-init:
+    image: postgres:16-alpine
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=ad_oltp
+      - SQL_DIR=/postgres/init
+    volumes:
+      - ./postgres/init:/postgres/init:ro
+      - ./scripts/pg-init.sh:/init/pg-init.sh
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/pg-init.sh && /init/pg-init.sh"]
+    restart: no
+
+  clickhouse-init:
+    image: clickhouse/clickhouse-server:latest
+    depends_on:
+      clickhouse: { condition: service_healthy }
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=mysecret
+      - CLICKHOUSE_DB=ctv
+      - SQL_DIR=/clickhouse/init
+    volumes:
+      - ./scripts/ch-init.sh:/init/ch-init.sh
+      - ./clickhouse/init:/clickhouse/init:ro
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/ch-init.sh && /init/ch-init.sh"]
+    restart: no
+  
   kafka-ui:
     image: kafbat/kafka-ui:main
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      # Prevent UI from switching to PLAINTEXT_HOST endpoints from metadata
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_CLUSTERS_0_PROPERTIES_CLIENT_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+
 
   kafka:
-    image: apache/kafka-native
+    image: apache/kafka
     ports:
       - "9092:9092"
     environment:
-      # Configure listeners for both docker and host communication
-      KAFKA_LISTENERS: CONTROLLER://localhost:9091,HOST://0.0.0.0:9092,DOCKER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
-
-      # Settings required for KRaft mode
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9091
-
-      # Listener to use for broker-to-broker communication
-      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
-
-      # Required for a single node cluster
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      # Optional but recommended to prevent accidental topic creation:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      # Healthy when the broker responds to a metadata call
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s    
+
+  kafka-init:
+    image: apache/kafka:latest           # includes /opt/kafka/bin/*
+    depends_on:
+      kafka: { condition: service_healthy }
+    environment:
+      # Internal listener (from the guide) that containers should use
+      KAFKA_BROKERS: kafka:29092
+      TOPIC_NAME: dev.ctv.ad-beacons.raw.v1
+      TOPIC_PARTITIONS: "1"              # keep basic; expand later
+      TOPIC_REPLICATION: "1"
+      TOPIC_RETENTION_HOURS: "1"         # basic example; tweak as needed
+      CLEANUP_POLICY: delete
+      EXTRA_CONFIGS: ""                  # e.g. "min.insync.replicas=1,segment.ms=3600000"
+      KAFKA_BIN: /opt/kafka/bin
+    volumes:
+      - ./scripts/kafka-init.sh:/init/kafka-init.sh
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/kafka-init.sh && /init/kafka-init.sh"]
+    restart: "no"
 
 volumes:
   grafana_data:
+  pg_data:
+  ch_data:
+  ch_logs:

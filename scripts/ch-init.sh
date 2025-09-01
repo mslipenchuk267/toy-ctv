@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CH_URL="${CLICKHOUSE_URL:-http://localhost:8123}"
+SQL_DIR="${SQL_DIR:-/clickhouse/init}"
+CH_HOST="${CLICKHOUSE_HOST:-clickhouse}"
+CH_PORT="${CLICKHOUSE_PORT:-9000}"
 CH_USER="${CLICKHOUSE_USER:-default}"
-CH_PASS="${CLICKHOUSE_PASSWORD:-}"
+CH_PASS="${CLICKHOUSE_PASSWORD:-mysecret}"
+CH_DB="${CLICKHOUSE_DB:-default}"
 
-echo "Applying ClickHouse schema to $CH_URL ..."
+echo "Applying ClickHouse schema to ${CH_HOST}:${CH_PORT}/${CH_DB} ..."
 shopt -s nullglob
-for f in "$ROOT/clickhouse/init/"*.sql; do
+files=("$SQL_DIR"/*.sql)
+if (( ${#files[@]} == 0 )); then
+  echo "No .sql files found in $SQL_DIR; nothing to apply."
+  exit 0
+fi
+
+for f in "${files[@]}"; do
   echo "-> $f"
-  if [ -n "$CH_PASS" ]; then
-    curl -fsS "$CH_URL" -u "$CH_USER:$CH_PASS" --data-binary @"$f" >/dev/null
+  if [[ -n "$CH_PASS" ]]; then
+    clickhouse-client --host "$CH_HOST" --port "$CH_PORT" \
+      -u "$CH_USER" --password "$CH_PASS" --database "$CH_DB" \
+      --multiquery < "$f"
   else
-    curl -fsS "$CH_URL" -u "$CH_USER" --data-binary @"$f" >/dev/null
+    clickhouse-client --host "$CH_HOST" --port "$CH_PORT" \
+      -u "$CH_USER" --database "$CH_DB" \
+      --multiquery < "$f"
   fi
 done
-echo "Clickhouse Done."
+
+echo "ClickHouse init complete."
