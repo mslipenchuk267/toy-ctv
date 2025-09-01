@@ -37,8 +37,8 @@ services:
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     ulimits: { nofile: { soft: 262144, hard: 262144 } }
     volumes:
-      - ./ch_data:/var/lib/clickhouse
-      - ./ch_logs:/var/log/clickhouse-server
+      - ch_data:/var/lib/clickhouse
+      - ch_logs:/var/log/clickhouse-server
 
   kafka-ui:
     image: kafbat/kafka-ui:main
@@ -76,3 +76,5 @@ services:
 volumes:
   grafana_data:
   pg_data:
+  ch_data:
+  ch_logs:
