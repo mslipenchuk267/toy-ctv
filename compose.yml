@@ -25,7 +25,14 @@ services:
       POSTGRES_PASSWORD: app
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d   # optional: init SQL
+      #- ./postgres/init:/docker-entrypoint-initdb.d   # optional: init SQL
+    healthcheck:
+      # Use pg_isready inside the container. Note $$ to avoid Compose interpolation.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -47,6 +54,23 @@ services:
       retries: 30
       start_period: 20s
 
+  postgres-init:
+    image: postgres:16-alpine
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=ad_oltp
+      - SQL_DIR=/postgres/init
+    volumes:
+      - ./postgres/init:/postgres/init:ro
+      - ./scripts/pg-init.sh:/init/pg-init.sh
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/pg-init.sh && /init/pg-init.sh"]
+    restart: no
+
   clickhouse-init:
     image: clickhouse/clickhouse-server:latest
     depends_on:
@@ -63,7 +87,7 @@ services:
       - ./clickhouse/init:/clickhouse/init:ro
     entrypoint: ["/bin/bash","-lc","chmod +x /init/ch-init.sh && /init/ch-init.sh"]
     restart: no
-
+  
   kafka-ui:
     image: kafbat/kafka-ui:main
     ports:
