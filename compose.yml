@@ -23,6 +23,12 @@ services:
       POSTGRES_DB: ad_oltp
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
+    command: >
+      postgres
+      -c wal_level=logical
+      -c max_replication_slots=8
+      -c max_wal_senders=8
+      -c max_worker_processes=16   
     volumes:
       - pg_data:/var/lib/postgresql/data
       #- ./postgres/init:/docker-entrypoint-initdb.d   # optional: init SQL
@@ -75,6 +81,7 @@ services:
     image: clickhouse/clickhouse-server:latest
     depends_on:
       clickhouse: { condition: service_healthy }
+      postgres: { condition: service_healthy }
     environment:
       - CLICKHOUSE_HOST=clickhouse
       - CLICKHOUSE_PORT=9000
