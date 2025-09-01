@@ -91,42 +91,67 @@ services:
   kafka-ui:
     image: kafbat/kafka-ui:main
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      # Prevent UI from switching to PLAINTEXT_HOST endpoints from metadata
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_CLUSTERS_0_PROPERTIES_CLIENT_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+
 
   kafka:
-    image: apache/kafka-native
+    image: apache/kafka
     ports:
       - "9092:9092"
     environment:
-      # Configure listeners for both docker and host communication
-      KAFKA_LISTENERS: CONTROLLER://localhost:9091,HOST://0.0.0.0:9092,DOCKER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
-
-      # Settings required for KRaft mode
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9091
-
-      # Listener to use for broker-to-broker communication
-      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
-
-      # Required for a single node cluster
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      # Optional but recommended to prevent accidental topic creation:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     healthcheck:
       # Healthy when the broker responds to a metadata call
-      test: ["CMD", "bash", "-lc", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
       interval: 5s
       timeout: 3s
       retries: 30
       start_period: 20s    
+
+  kafka-init:
+    image: apache/kafka:latest           # includes /opt/kafka/bin/*
+    depends_on:
+      kafka: { condition: service_healthy }
+    environment:
+      # Internal listener (from the guide) that containers should use
+      KAFKA_BROKERS: kafka:29092
+      TOPIC_NAME: dev.ctv.ad-beacons.raw.v1
+      TOPIC_PARTITIONS: "1"              # keep basic; expand later
+      TOPIC_REPLICATION: "1"
+      TOPIC_RETENTION_HOURS: "1"         # basic example; tweak as needed
+      CLEANUP_POLICY: delete
+      EXTRA_CONFIGS: ""                  # e.g. "min.insync.replicas=1,segment.ms=3600000"
+      KAFKA_BIN: /opt/kafka/bin
+    volumes:
+      - ./scripts/kafka-init.sh:/init/kafka-init.sh
+    entrypoint: ["/bin/bash","-lc","chmod +x /init/kafka-init.sh && /init/kafka-init.sh"]
+    restart: "no"
 
 volumes:
   grafana_data:
