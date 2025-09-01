@@ -120,6 +120,13 @@ services:
 
       # Required for a single node cluster
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      # Healthy when the broker responds to a metadata call
+      test: ["CMD", "bash", "-lc", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s    
 
 volumes:
   grafana_data:
