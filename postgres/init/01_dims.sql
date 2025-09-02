@@ -1,13 +1,13 @@
 -- DDL for basic Type-1 dims + utility triggers
 CREATE TABLE IF NOT EXISTS advertisers (
-  advertiser_id SERIAL PRIMARY KEY,
+  advertiser_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   name         TEXT NOT NULL UNIQUE,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS campaigns (
-  campaign_id   SERIAL PRIMARY KEY,
+  campaign_id   INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   advertiser_id INT NOT NULL REFERENCES advertisers(advertiser_id),
   name          TEXT NOT NULL,
   status        TEXT NOT NULL DEFAULT 'active',
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
 );
 
 CREATE TABLE IF NOT EXISTS creatives (
-  creative_sk     SERIAL PRIMARY KEY,
+  creative_sk     INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   creative_id_nat TEXT NOT NULL UNIQUE,
   campaign_id     INT NOT NULL REFERENCES campaigns(campaign_id),
   name            TEXT NOT NULL,
