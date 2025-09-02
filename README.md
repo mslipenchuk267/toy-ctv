@@ -24,18 +24,18 @@ End-to-end toy **CTV ad-tech** pipeline following STAR schema: **PostgreSQL** ho
        ▼
 ┌───────────────────┐            ┌────────────────────────────────────────────────────┐
 │      Kafka        │            │                     PostgreSQL                     │
-│  dev.ctv.ad-...   │            │  public.advertisers  public.campaigns  creatives   │
+│     <topic>       │            │                 <dimension tables>                 │
 └─────────┬─────────┘            └───────────────┬────────────────────────────────────┘
           │                                      │
           │ (ingest events)                      │ (logical replication / SCD-1 upserts)
           ▼                                      ▼
 ┌───────────────────┐            ┌─────────────────────────────────────────────────────┐
-│   ClickHouse      │◀──────────▶│        pg_repl.* (MaterializedPostgreSQL)           │
-│  ctv_raw_events   │            └─────────────────────────────────────────────────────┘
+│    ClickHouse     │◀──────────▶│        (MaterializedPostgreSQL) <dim. tables>       │
+│   <fact tables>   │            └─────────────────────────────────────────────────────┘
 └───────────────────┘                           
                            ┌──────────────────────┐
                            │       Grafana        │
-                           │  (ClickHouse DS)     │
+                           │                      │
                            └─────────▲────────────┘
                                      │
                                Explore & Dashboards
