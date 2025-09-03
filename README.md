@@ -1,7 +1,5 @@
 # toy-ctv
 
-## How it flows
-
 End-to-end toy **CTV ad-tech** pipeline following STAR schema: **PostgreSQL** hosts  **dimension tables** (advertisers, campaigns, creatives) which are **replicated into ClickHouse** via the `MaterializedPostgreSQL` engine at SCD-1 CDC. **Kafka CTV events** are ingested with the **ClickHouse** `Kafka` engine and appended into a fact table (`MergeTree` engine) via a materialized view. Grafana lets you query Clickhouse & Postgres from one place.
 
 - **OLTP (Dim source):** PostgreSQL (`public.advertisers`, `public.campaigns`, `public.creatives`)
@@ -14,8 +12,6 @@ End-to-end toy **CTV ad-tech** pipeline following STAR schema: **PostgreSQL** ho
 > Generate events: `cd test && uv run python func_test.py`
 
 ---
-
-## How it flows
 
 ```text
    (CTV beacons)
