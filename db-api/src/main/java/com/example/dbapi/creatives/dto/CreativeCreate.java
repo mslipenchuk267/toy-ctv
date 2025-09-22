@@ -1,4 +1,4 @@
-package com.example.dbapi.dto;
+package com.example.dbapi.creatives.dto;
 
 public record CreativeCreate(String creativeIdNat, Integer campaignId,
                              String name, Integer durationMs) { }

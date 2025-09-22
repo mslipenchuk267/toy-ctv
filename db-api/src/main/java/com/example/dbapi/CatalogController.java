@@ -1,6 +1,11 @@
 package com.example.dbapi;
 
-import com.example.dbapi.dto.*;
+import com.example.dbapi.advertisers.dto.AdvertiserCreate;
+import com.example.dbapi.advertisers.dto.AdvertiserView;
+import com.example.dbapi.campaigns.dto.CampaignCreate;
+import com.example.dbapi.campaigns.dto.CampaignView;
+import com.example.dbapi.creatives.dto.CreativeCreate;
+import com.example.dbapi.creatives.dto.CreativeView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,24 +25,24 @@ public class CatalogController {
 
     // POSTS ------------------------------------------------------------------
     @PostMapping("/advertisers")
-    public ResponseEntity<Advertiser> createAdvertiser(@RequestBody AdvertiserCreate req,
-                                                       UriComponentsBuilder uri) {
+    public ResponseEntity<AdvertiserView> createAdvertiser(@RequestBody AdvertiserCreate req,
+                                                           UriComponentsBuilder uri) {
         var created = catalogSrv.createAdvertiser(req);
         var location = uri.path("/advertisers/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
     }
 
     @PostMapping("/campaigns")
-    public ResponseEntity<Campaign> createCampaign(@RequestBody CampaignCreate req,
-                                                   UriComponentsBuilder uri) {
+    public ResponseEntity<CampaignView> createCampaign(@RequestBody CampaignCreate req,
+                                                       UriComponentsBuilder uri) {
         var created = catalogSrv.createCampaign(req);
         var location = uri.path("/campaigns/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
     }
 
     @PostMapping("/creatives")
-    public ResponseEntity<Creative> createCreative(@RequestBody CreativeCreate req,
-                                                   UriComponentsBuilder uri) {
+    public ResponseEntity<CreativeView> createCreative(@RequestBody CreativeCreate req,
+                                                       UriComponentsBuilder uri) {
         var created = catalogSrv.createCreative(req);
         var location = uri.path("/creatives/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
@@ -46,21 +51,21 @@ public class CatalogController {
     // GETS -------------------------------------------------------------------
     // All paginated
     @GetMapping("/advertisers")
-    public Page<Advertiser> advertisers(
+    public Page<AdvertiserView> advertisers(
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return catalogSrv.getAllAdvertisers(pageable);
     }
 
     @GetMapping("/campaigns")
-    public Page<Campaign> campaigns(
+    public Page<CampaignView> campaigns(
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return catalogSrv.getAllCampaigns(pageable);
     }
 
     @GetMapping("/creatives")
-    public Page<Creative> creatives(
+    public Page<CreativeView> creatives(
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
@@ -69,23 +74,23 @@ public class CatalogController {
 
     // Single Response on Primary Key
     @GetMapping("/advertisers/{id}")
-    public Advertiser advertiser(@PathVariable Integer id) {
+    public AdvertiserView advertiser(@PathVariable Integer id) {
         return catalogSrv.getAdvertiserById(id);
     }
 
     @GetMapping("/campaigns/{id}")
-    public Campaign campaign(@PathVariable Integer id) {
+    public CampaignView campaign(@PathVariable Integer id) {
         return catalogSrv.getCampaignById(id);
     }
 
     @GetMapping("/creatives/{id}")
-    public Creative creative(@PathVariable Integer id) {
+    public CreativeView creative(@PathVariable Integer id) {
         return catalogSrv.getCreativeById(id);
     }
 
     // Creatives for Campaign
     @GetMapping("/campaigns/{id}/creatives")
-    public Page<Creative> campaignCreatives(
+    public Page<CreativeView> campaignCreatives(
             @PathVariable Integer id,
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable

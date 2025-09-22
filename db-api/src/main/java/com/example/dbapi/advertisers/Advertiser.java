@@ -1,10 +1,10 @@
-package com.example.dbapi;
+package com.example.dbapi.advertisers;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "advertisers")
-public class Advertisers {
+public class Advertiser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,11 +12,11 @@ public class Advertisers {
     private int id;
     private String name;
 
-    protected Advertisers() {
+    public Advertiser() {
         // JPA requires a no-args constructor
     }
 
-    public Advertisers(int id, String name) {
+    public Advertiser(int id, String name) {
         this.id = id;
         this.name = name;
     }

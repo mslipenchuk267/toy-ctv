@@ -1,4 +1,4 @@
-package com.example.dbapi;
+package com.example.dbapi.creatives;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -6,7 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface AdvertiserRepository extends JpaRepository<Advertisers, Integer> {
+public interface CreativeRepository extends JpaRepository<Creative, Integer> {
     <T> Optional<T> findById(Integer id, Class<T> type);
+
+    <T> Page<T> findByCampaignId(Integer campaignId,
+                             Pageable pageable,
+                             Class<T> type);
+
     <T> Page<T> findAllBy(Pageable pageable, Class<T> type);
 }

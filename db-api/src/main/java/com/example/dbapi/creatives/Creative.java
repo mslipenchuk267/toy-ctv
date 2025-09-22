@@ -1,10 +1,11 @@
-package com.example.dbapi;
+package com.example.dbapi.creatives;
 
+import com.example.dbapi.campaigns.Campaign;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "creatives")
-public class Creatives {
+public class Creative {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,19 +17,19 @@ public class Creatives {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "campaign_id", nullable = false)
-    private Campaigns campaign;
+    private Campaign campaign;
 
     private String name;
 
     @Column(name = "duration_ms")
     private int durationMs;
 
-    protected Creatives() {
+    protected Creative() {
 
     }
 
-    public Creatives(String creative_id_nat, String name, Integer duration_ms,
-                     Campaigns campaign) {
+    public Creative(String creative_id_nat, String name, Integer duration_ms,
+                    Campaign campaign) {
         this.creativeIdNat = creative_id_nat;
         this.name = name;
         this.durationMs = duration_ms;

@@ -1,6 +1,17 @@
 package com.example.dbapi;
 
-import com.example.dbapi.dto.*;
+import com.example.dbapi.advertisers.Advertiser;
+import com.example.dbapi.advertisers.AdvertiserRepository;
+import com.example.dbapi.advertisers.dto.AdvertiserCreate;
+import com.example.dbapi.advertisers.dto.AdvertiserView;
+import com.example.dbapi.campaigns.Campaign;
+import com.example.dbapi.campaigns.CampaignRepository;
+import com.example.dbapi.campaigns.dto.CampaignCreate;
+import com.example.dbapi.campaigns.dto.CampaignView;
+import com.example.dbapi.creatives.Creative;
+import com.example.dbapi.creatives.CreativeRepository;
+import com.example.dbapi.creatives.dto.CreativeCreate;
+import com.example.dbapi.creatives.dto.CreativeView;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -30,74 +41,74 @@ public class CatalogService {
 
     // Writes -----------------------------------------------------------------
     @Transactional
-    public Advertiser createAdvertiser(AdvertiserCreate req) {
-        var a = new Advertisers();
+    public AdvertiserView createAdvertiser(AdvertiserCreate req) {
+        var a = new Advertiser();
         a.setName(req.name());
         var saved = advertisers.save(a);
-        return new Advertiser(saved.getId(), saved.getName());
+        return new AdvertiserView(saved.getId(), saved.getName());
     }
 
     @Transactional
-    public Campaign createCampaign(CampaignCreate req) {
+    public CampaignView createCampaign(CampaignCreate req) {
         var a = orNotFound(advertisers.findById(req.advertiserId()), "Advertiser w/ id: " + req.advertiserId() + " not found.");
-        var c = new Campaigns(
+        var c = new Campaign(
                 req.name(), req.status(), req.startDate(), req.endDate(),
                 a);
         var saved = campaigns.save(c);
-        return new Campaign(
+        return new CampaignView(
                 saved.getId(), saved.getName(), saved.getStatus(),
                 saved.getStartDate(), saved.getEndDate()
         );
     }
 
     @Transactional
-    public Creative createCreative(CreativeCreate req) {
+    public CreativeView createCreative(CreativeCreate req) {
         var c = orNotFound(campaigns.findById(req.campaignId()), "Campaign w/ id: " + req.campaignId() + " not found.");
-        var cr = new Creatives(
+        var cr = new Creative(
                 req.creativeIdNat(), req.name(), req.durationMs(),
                 c
         );
         var saved = creatives.save(cr);
-        return new Creative(
+        return new CreativeView(
                 saved.getId(), saved.getName(), saved.getDurationMs()
         );
     }
 
     // Single-Entity reads ----------------------------------------------------
     @Transactional(readOnly = true)
-    public Advertiser getAdvertiserById(Integer id) {
-        return orNotFound(advertisers.findById(id, Advertiser.class), "Advertiser w/ id: " + id + " not found.");
+    public AdvertiserView getAdvertiserById(Integer id) {
+        return orNotFound(advertisers.findById(id, AdvertiserView.class), "Advertiser w/ id: " + id + " not found.");
     }
 
     @Transactional(readOnly = true)
-    public Campaign getCampaignById(Integer id) {
-        return orNotFound(campaigns.findById(id, Campaign.class), "Campaign w/ id: " + id + " not found.");
+    public CampaignView getCampaignById(Integer id) {
+        return orNotFound(campaigns.findById(id, CampaignView.class), "Campaign w/ id: " + id + " not found.");
     }
 
     @Transactional(readOnly = true)
-    public Creative getCreativeById(Integer id) {
-        return orNotFound(creatives.findById(id, Creative.class), "Creative w/ id: " + id + " not found.");
+    public CreativeView getCreativeById(Integer id) {
+        return orNotFound(creatives.findById(id, CreativeView.class), "Creative w/ id: " + id + " not found.");
     }
 
     // Multi-Entity Reads (paged) ---------------------------------------------
     @Transactional(readOnly = true)
-    public Page<Advertiser> getAllAdvertisers(Pageable pageable) {
-        return advertisers.findAllBy(pageable, Advertiser.class);
+    public Page<AdvertiserView> getAllAdvertisers(Pageable pageable) {
+        return advertisers.findAllBy(pageable, AdvertiserView.class);
     }
 
     @Transactional
-    public Page<Campaign> getAllCampaigns(Pageable pageable) {
-        return campaigns.findAllBy(pageable, Campaign.class);
+    public Page<CampaignView> getAllCampaigns(Pageable pageable) {
+        return campaigns.findAllBy(pageable, CampaignView.class);
     }
 
     @Transactional(readOnly = true)
-    public Page<Creative> getCreativesByCampaign(Integer campaignId, Pageable pageable) {
-        return creatives.findByCampaignId(campaignId, pageable, Creative.class);
+    public Page<CreativeView> getCreativesByCampaign(Integer campaignId, Pageable pageable) {
+        return creatives.findByCampaignId(campaignId, pageable, CreativeView.class);
     }
 
     @Transactional(readOnly = true)
-    public Page<Creative> getAllCreatives(Pageable pageable) {
-        return creatives.findAllBy(pageable, Creative.class);
+    public Page<CreativeView> getAllCreatives(Pageable pageable) {
+        return creatives.findAllBy(pageable, CreativeView.class);
     }
 
 }

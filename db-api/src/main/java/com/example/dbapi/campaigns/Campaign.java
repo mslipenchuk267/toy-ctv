@@ -1,13 +1,13 @@
-package com.example.dbapi;
+package com.example.dbapi.campaigns;
 
-import com.example.dbapi.dto.Advertiser;
+import com.example.dbapi.advertisers.Advertiser;
 import jakarta.persistence.*;
 
 import java.util.Date;
 
 @Entity
 @Table(name = "campaigns")
-public class Campaigns {
+public class Campaign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "campaign_id")
@@ -16,7 +16,7 @@ public class Campaigns {
     //private int advertiserId;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "advertiser_id", nullable = false)
-    private Advertisers advertiser;
+    private Advertiser advertiser;
 
     private String name;
     private String status;
@@ -25,10 +25,10 @@ public class Campaigns {
     @Column(name = "end_date")
     private Date endDate;
 
-    protected Campaigns() {}
+    protected Campaign() {}
 
-    public Campaigns(String name, String status,
-                     Date start_date, Date end_data, Advertisers advertiser) {
+    public Campaign(String name, String status,
+                    Date start_date, Date end_data, Advertiser advertiser) {
         this.name = name;
         this.status = status;
         this.startDate = start_date;

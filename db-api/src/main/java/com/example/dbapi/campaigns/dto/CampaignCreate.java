@@ -1,4 +1,4 @@
-package com.example.dbapi.dto;
+package com.example.dbapi.campaigns.dto;
 
 import java.util.Date;
 
