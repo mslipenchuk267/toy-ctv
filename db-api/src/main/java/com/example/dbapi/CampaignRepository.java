@@ -2,4 +2,4 @@ package com.example.dbapi;
 
 import org.springframework.data.repository.ListCrudRepository;
 
-public interface AdvertiserRepository extends ListCrudRepository<Advertiser, Integer> { }
+public interface CampaignRepository extends ListCrudRepository<Campaign, Integer> { }
