@@ -1,24 +1,22 @@
 package com.example.dbapi;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "advertisers")
-public class Advertiser {
+public class Advertisers {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "advertiser_id")
     private int id;
     private String name;
 
-    protected Advertiser() {
+    protected Advertisers() {
         // JPA requires a no-args constructor
     }
 
-    public Advertiser(int id, String name) {
+    public Advertisers(int id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -30,4 +28,8 @@ public class Advertiser {
     public String getName() {
         return name;
     }
+
+    public void setId(Integer id) { this.id = id; }
+
+    public void setName(String name) { this.name = name; }
 }

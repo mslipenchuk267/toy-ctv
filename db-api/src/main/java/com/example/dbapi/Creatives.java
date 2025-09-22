@@ -1,13 +1,10 @@
 package com.example.dbapi;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "creatives")
-public class Creative {
+public class Creatives {
 
     @Id
     @Column(name = "creative_sk")
@@ -16,29 +13,31 @@ public class Creative {
     @Column(name = "creative_id_nat")
     private String creativeIdNat;
 
-    @Column(name = "campaign_id")
-    private int campaignId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "campaign_id", nullable = false)
+    private Campaigns campaign;
 
     private String name;
 
     @Column(name = "duration_ms")
     private int durationMs;
 
-    protected Creative() {
+    protected Creatives() {
 
     }
 
-    public Creative(int id, String creative_id_nat, Integer campaign_id, String name, Integer duration_ms) {
+    public Creatives(int id, String creative_id_nat, String name, Integer duration_ms,
+                     Campaigns campaign) {
         this.id = id;
         this.creativeIdNat = creative_id_nat;
-        this.campaignId = campaign_id;
         this.name = name;
         this.durationMs = duration_ms;
+        this.campaign = campaign;
     }
 
     public int getId() { return id; }
 
-    public int getCampaignId() { return campaignId; }
+    public int getCampaignId() { return campaign.getId(); }
 
     public String getCreativeIdNat() { return creativeIdNat; }
 

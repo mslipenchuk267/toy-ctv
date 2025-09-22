@@ -1,5 +1,12 @@
 package com.example.dbapi;
 
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AdvertiserRepository extends ListCrudRepository<Advertiser, Integer> { }
+import java.util.Optional;
+
+public interface AdvertiserRepository extends JpaRepository<Advertisers, Integer> {
+    <T> Optional<T> findById(Integer id, Class<T> type);
+    <T> Page<T> findAllBy(Pageable pageable, Class<T> type);
+}

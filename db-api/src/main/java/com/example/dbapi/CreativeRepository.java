@@ -2,11 +2,16 @@ package com.example.dbapi;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CreativeRepository extends ListCrudRepository<Creative, Integer> {
-    Page<Creative> findByCampaignId(Integer campaignId,
-                                    Pageable pageable);
+import java.util.Optional;
 
-    Page<Creative> findAll(Pageable pageable);
+public interface CreativeRepository extends JpaRepository<Creatives, Integer> {
+    <T> Optional<T> findById(Integer id, Class<T> type);
+
+    <T> Page<T> findByCampaignId(Integer campaignId,
+                             Pageable pageable,
+                             Class<T> type);
+
+    <T> Page<T> findAllBy(Pageable pageable, Class<T> type);
 }
