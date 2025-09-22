@@ -7,7 +7,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
@@ -59,6 +58,15 @@ public class CatalogController {
         return catalogSrv.getAllCampaigns(pageable);
     }
 
+    @GetMapping("/creatives")
+    public Page<Creative> creatives(
+            @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return catalogSrv.getAllCreatives(pageable);
+    }
+
+
     @GetMapping("/advertisers/{id}")
     public Advertiser advertiser(@PathVariable Integer id) {
         return catalogSrv.getAdvertiserById(id);
@@ -72,15 +80,6 @@ public class CatalogController {
     @GetMapping("/creatives/{id}")
     public Creative creative(@PathVariable Integer id) {
         return catalogSrv.getCreativeById(id);
-    }
-
-    // Creative-related endpoints
-    @GetMapping("/creatives")
-    public Page<Creative> creatives(
-            @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
-            Pageable pageable
-    ) {
-        return catalogSrv.getAllCreatives(pageable);
     }
 
     @GetMapping("/campaigns/{id}/creatives")
