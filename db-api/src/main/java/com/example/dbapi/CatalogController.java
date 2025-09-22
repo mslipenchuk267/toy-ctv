@@ -44,6 +44,7 @@ public class CatalogController {
     }
 
     // GETS -------------------------------------------------------------------
+    // All paginated
     @GetMapping("/advertisers")
     public Page<Advertiser> advertisers(
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
@@ -66,7 +67,7 @@ public class CatalogController {
         return catalogSrv.getAllCreatives(pageable);
     }
 
-
+    // Single Response on Primary Key
     @GetMapping("/advertisers/{id}")
     public Advertiser advertiser(@PathVariable Integer id) {
         return catalogSrv.getAdvertiserById(id);
@@ -82,13 +83,14 @@ public class CatalogController {
         return catalogSrv.getCreativeById(id);
     }
 
+    // Creatives for Campaign
     @GetMapping("/campaigns/{id}/creatives")
     public Page<Creative> campaignCreatives(
             @PathVariable Integer id,
             @PageableDefault(size = 25, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
-        return catalogSrv.getCreativeByCampaign(id, pageable);
+        return catalogSrv.getCreativesByCampaign(id, pageable);
     }
 
 

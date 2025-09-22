@@ -91,7 +91,7 @@ public class CatalogService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Creative> getCreativeByCampaign(Integer campaignId, Pageable pageable) {
+    public Page<Creative> getCreativesByCampaign(Integer campaignId, Pageable pageable) {
         return creatives.findByCampaignId(campaignId, pageable, Creative.class);
     }
 
