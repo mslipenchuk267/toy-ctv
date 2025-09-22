@@ -13,14 +13,14 @@ import java.util.Optional;
 public class CatalogService {
     private final AdvertiserRepository advertisers;
     private final CampaignRepository campaigns;
-    private final CreativeRepository creaRepo;
+    private final CreativeRepository creatives;
 
     public CatalogService(AdvertiserRepository repo,
                           CampaignRepository campaigns,
-                          CreativeRepository creaRepo) {
+                          CreativeRepository creatives) {
         this.advertisers = repo;
         this.campaigns = campaigns;
-        this.creaRepo = creaRepo;
+        this.creatives = creatives;
     }
 
     // Helpers ----------------------------------------------------------------
@@ -50,6 +50,19 @@ public class CatalogService {
         );
     }
 
+    @Transactional
+    public Creative createCreative(CreativeCreate req) {
+        var c = orNotFound(campaigns.findById(req.campaignId()), "Campaign w/ id: " + req.campaignId() + " not found.");
+        var cr = new Creatives(
+                req.creativeIdNat(), req.name(), req.durationMs(),
+                c
+        );
+        var saved = creatives.save(cr);
+        return new Creative(
+                saved.getId(), saved.getName(), saved.getDurationMs()
+        );
+    }
+
     // Single-Entity reads ----------------------------------------------------
     @Transactional(readOnly = true)
     public Advertiser getAdvertiserById(Integer id) {
@@ -63,7 +76,7 @@ public class CatalogService {
 
     @Transactional(readOnly = true)
     public Creative getCreativeById(Integer id) {
-        return orNotFound(creaRepo.findById(id, Creative.class), "Creative w/ id: " + id + " not found.");
+        return orNotFound(creatives.findById(id, Creative.class), "Creative w/ id: " + id + " not found.");
     }
 
     // Multi-Entity Reads (paged) ---------------------------------------------
@@ -79,12 +92,12 @@ public class CatalogService {
 
     @Transactional(readOnly = true)
     public Page<Creative> getCreativeByCampaign(Integer campaignId, Pageable pageable) {
-        return creaRepo.findByCampaignId(campaignId, pageable, Creative.class);
+        return creatives.findByCampaignId(campaignId, pageable, Creative.class);
     }
 
     @Transactional(readOnly = true)
     public Page<Creative> getAllCreatives(Pageable pageable) {
-        return creaRepo.findAllBy(pageable, Creative.class);
+        return creatives.findAllBy(pageable, Creative.class);
     }
 
 }

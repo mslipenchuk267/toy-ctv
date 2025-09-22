@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 public class Creatives {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "creative_sk")
     private int id;
 
@@ -26,9 +27,8 @@ public class Creatives {
 
     }
 
-    public Creatives(int id, String creative_id_nat, String name, Integer duration_ms,
+    public Creatives(String creative_id_nat, String name, Integer duration_ms,
                      Campaigns campaign) {
-        this.id = id;
         this.creativeIdNat = creative_id_nat;
         this.name = name;
         this.durationMs = duration_ms;

@@ -36,6 +36,14 @@ public class CatalogController {
         return ResponseEntity.created(location).body(created);
     }
 
+    @PostMapping("/creatives")
+    public ResponseEntity<Creative> createCreative(@RequestBody CreativeCreate req,
+                                                   UriComponentsBuilder uri) {
+        var created = catalogSrv.createCreative(req);
+        var location = uri.path("/creatives/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
+    }
+
     // GETS -------------------------------------------------------------------
     @GetMapping("/advertisers")
     public Page<Advertiser> advertisers(
