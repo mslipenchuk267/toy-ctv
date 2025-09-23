@@ -1,6 +1,5 @@
-package com.example.dbapi.campaigns;
+package com.example.dbapi.model;
 
-import com.example.dbapi.advertisers.Advertiser;
 import jakarta.persistence.*;
 
 import java.util.Date;

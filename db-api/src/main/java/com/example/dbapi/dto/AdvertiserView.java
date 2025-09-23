@@ -1,4 +1,4 @@
-package com.example.dbapi.advertisers.dto;
+package com.example.dbapi.dto;
 
 import org.springframework.data.annotation.Id;
 

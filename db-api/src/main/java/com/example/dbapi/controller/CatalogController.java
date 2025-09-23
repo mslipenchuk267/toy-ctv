@@ -1,11 +1,12 @@
-package com.example.dbapi;
+package com.example.dbapi.controller;
 
-import com.example.dbapi.advertisers.dto.AdvertiserCreate;
-import com.example.dbapi.advertisers.dto.AdvertiserView;
-import com.example.dbapi.campaigns.dto.CampaignCreate;
-import com.example.dbapi.campaigns.dto.CampaignView;
-import com.example.dbapi.creatives.dto.CreativeCreate;
-import com.example.dbapi.creatives.dto.CreativeView;
+import com.example.dbapi.dto.AdvertiserCreate;
+import com.example.dbapi.dto.AdvertiserView;
+import com.example.dbapi.dto.CampaignCreate;
+import com.example.dbapi.dto.CampaignView;
+import com.example.dbapi.dto.CreativeCreate;
+import com.example.dbapi.dto.CreativeView;
+import com.example.dbapi.service.CatalogService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

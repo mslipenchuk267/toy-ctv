@@ -1,4 +1,4 @@
-package com.example.dbapi.advertisers;
+package com.example.dbapi.model;
 
 import jakarta.persistence.*;
 

@@ -1,6 +1,5 @@
-package com.example.dbapi.creatives;
+package com.example.dbapi.model;
 
-import com.example.dbapi.campaigns.Campaign;
 import jakarta.persistence.*;
 
 @Entity
